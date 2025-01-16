@@ -3,6 +3,7 @@ pragma solidity ^0.8.19;
 
 // Invariant Contracts
 import {BaseAssertions} from "./assertions/BaseAssertions.t.sol";
+import {MorphoAssertions} from "./assertions/MorphoAssertions.t.sol";
 
 /// @title Invariants
 /// @notice Wrappers for the protocol invariants implemented in each invariants contract
@@ -11,7 +12,7 @@ import {BaseAssertions} from "./assertions/BaseAssertions.t.sol";
 // !Note: main invariant checks goes in this file, BECAUSE functions has echidna_ prefix, which will run invariants checks
 // BUT the specific logic of each invariant is implemented in the respective invariants contract - these ARE known as the ASSERTION functions in TEMPLATE/// @dev Inherits BaseInvariants that inherits HandlerAggregator
 
-abstract contract Invariants is BaseAssertions {
+abstract contract Invariants is BaseAssertions, MorphoAssertions {
     ///////////////////////////////////////////////////////////////////////////////////////////////
     //                                     BASE INVARIANTS                                       //
     ///////////////////////////////////////////////////////////////////////////////////////////////

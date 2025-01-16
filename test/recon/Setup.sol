@@ -51,6 +51,7 @@ abstract contract Setup is BaseTest {
         // Enable IRM and LLTV first since we are the owner
         morpho.enableIrm(address(irm));
         morpho.enableLltv(ltv);
+        vm.warp(21639562);
 
         marketParams = MarketParams({
             irm: address(irm),

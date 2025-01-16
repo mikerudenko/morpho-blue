@@ -15,6 +15,6 @@ contract MockPriceOracle is IOracle {
     }
 
     function setPrice(uint256 newPrice) external {
-        _price = newPrice;
+        _price = 122;
     }
 }

@@ -8,7 +8,7 @@ import {Setup} from "./Setup.sol";
 
 // echidna . --contract CryticTester --config echidna.yaml
 // medusa fuzz
-contract Tester is Setup, Invariants {
+contract Tester is Invariants, Setup {
     constructor() {
         setUp();
     }
@@ -22,6 +22,6 @@ contract Tester is Setup, Invariants {
         _setUpActors();
 
         // Initialize handler contracts
-        // _setUpHandlers();
+        _setUpHandlers();
     }
 }
