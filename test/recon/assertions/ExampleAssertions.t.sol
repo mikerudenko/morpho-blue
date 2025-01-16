@@ -12,7 +12,7 @@ import {HandlerAggregator} from "../HandlerAggregator.t.sol";
 /// @dev Inherits HandlerAggregator to check actions in assertion testing mode
 
 // !Note this files serves as an example how to write specific invariant assertions
-abstract contract VaultModuleAssertions is HandlerAggregator {
+abstract contract MorphoAssertions is HandlerAggregator {
     ///////////////////////////////////////////////////////////////////////////////////////////////
     //                                        VAULT SIMPLE                                       //
     ///////////////////////////////////////////////////////////////////////////////////////////////

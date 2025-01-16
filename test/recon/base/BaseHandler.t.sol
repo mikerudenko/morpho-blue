@@ -5,6 +5,8 @@ pragma solidity ^0.8.19;
 import {EnumerableSet} from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
+import {HookAggregator} from "../hooks/HookAggregator.t.sol";
+
 // Contracts
 // import {Actor} from "../utils/Actor.sol";
 // import {HookAggregator} from "../hooks/HookAggregator.t.sol";
@@ -31,7 +33,7 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 ///
 /// 3. Protocol Specific Section:
 ///    Add your protocol-specific logic and invariants
-contract BaseHandler {
+contract BaseHandler is HookAggregator {
     using EnumerableSet for EnumerableSet.AddressSet;
 
     ///////////////////////////////////////////////////////////////////////////////////////////////

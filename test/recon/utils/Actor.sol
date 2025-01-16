@@ -13,7 +13,7 @@ contract Actor {
     /// @notice list of callers to approve tokens to
     address[] internal callers;
 
-    constructor(address[] memory _tokens, address[] memory _callers) payable {
+    constructor(address[] memory _tokens, address[] memory _callers) {
         tokens = _tokens;
         callers = _callers;
         for (uint256 i = 0; i < tokens.length; i++) {

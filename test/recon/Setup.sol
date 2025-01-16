@@ -2,6 +2,7 @@
 pragma solidity ^0.8.0;
 
 // import {BaseSetup} from "@chimera/BaseSetup.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 import {Actor} from "./utils/Actor.sol";
 import {BaseTest} from "./base/BaseTest.t.sol";
@@ -9,11 +10,24 @@ import {Morpho} from "../../src/Morpho.sol";
 import {MarketParams} from "../../src/interfaces/IMorpho.sol";
 import {MockPriceOracle} from "./mocks/MockPriceOracle.sol";
 import {TestERC20} from "./mocks/TestERC20.sol";
+import {MockIIrm} from "./mocks/MockIIrm.sol";
+import {MathLib} from "../../src/libraries/MathLib.sol";
+import {UtilsLib} from "../../src/libraries/UtilsLib.sol";
+import {SharesMathLib} from "../../src/libraries/SharesMathLib.sol";
+import {SafeTransferLib} from "../../src/libraries/SafeTransferLib.sol";
+import {MarketParamsLib} from "../../src/libraries/MarketParamsLib.sol";
+
 // import "src/Counter.sol";
 
 abstract contract Setup is BaseTest {
+    using MathLib for uint128;
+    using MathLib for uint256;
+    using UtilsLib for uint256;
+    using SharesMathLib for uint256;
+    using SafeTransferLib for IERC20;
+    using MarketParamsLib for MarketParams;
+
     // Counter counter;
-    Morpho morpho;
 
     function _setUp() internal {
         _deployMorpho();
@@ -25,17 +39,27 @@ abstract contract Setup is BaseTest {
     }
 
     function _createMarket() internal {
-        address randomActor = _getRandomActor();
-        MockPriceOracle mockOracle = new MockPriceOracle();
-        TestERC20 loanToken = new TestERC20("LOAN", "Loan Token");
-        TestERC20 collateralToken = new TestERC20("COLL", "Collateral Token");
-        MarketParams memory marketParams = MarketParams({
-            irm: address(0), // Set appropriate IRM address
-            lltv: 0.75 * 1e18, // Example LLTV value
+        mockOracle = new MockPriceOracle();
+        loanToken = new TestERC20("LOAN", "Loan Token");
+        collateralToken = new TestERC20("COLL", "Collateral Token");
+
+        irm = new MockIIrm(0.05 * 1e18);
+
+        // Define LLTV value
+        uint256 ltv = 0.75 * 1e18; // 75% LLTV
+
+        // Enable IRM and LLTV first since we are the owner
+        morpho.enableIrm(address(irm));
+        morpho.enableLltv(ltv);
+
+        marketParams = MarketParams({
+            irm: address(irm),
+            lltv: ltv, // Use same LTV that was enabled
             oracle: address(mockOracle),
             loanToken: address(loanToken),
             collateralToken: address(collateralToken)
         });
+
         morpho.createMarket(marketParams);
     }
 

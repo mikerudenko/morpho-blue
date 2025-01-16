@@ -11,10 +11,15 @@ import {FlashLoanHandler} from "./handlers/simulators/FlashLoanHandler.t.sol";
 import {IRMHandler} from "./handlers/simulators/IRMHandler.t.sol";
 import {PriceOracleHandler} from "./handlers/simulators/PriceOracleHandler.t.sol";
 
+// Morpho handlers
+import {MorphoHandler} from "./handlers/modules/MorphoHandler.t.sol";
+
 /// @notice Helper contract to aggregate all handler contracts, inherited in BaseInvariants
 // BorrowingModuleHandler,
 abstract contract HandlerAggregator is
-    DonationAttackHandler, // Simulator handlers
+    MorphoHandler,
+    // Simulator handlers
+    DonationAttackHandler,
     FlashLoanHandler,
     IRMHandler,
     PriceOracleHandler

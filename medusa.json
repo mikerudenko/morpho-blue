@@ -8,13 +8,10 @@
     "corpusDirectory": "medusa",
     "coverageEnabled": true,
     "deploymentOrder": [
-      "CryticTester"
+      "Tester"
     ],
     "targetContracts": [
-      "CryticTester"
-    ],
-    "targetContractsBalances": [
-      "0x27b46536c66c8e3000000"
+      "Tester"
     ],
     "constructorArgs": {},
     "deployerAddress": "0x7FA9385bE102ac3EAc297483Dd6233D62b3e1496",
@@ -52,7 +49,9 @@
       "propertyTesting": {
         "enabled": true,
         "testPrefixes": [
-          "invariant_"
+          "invariant_",
+          "fuzz_",
+          "echidna_"
         ]
       },
       "optimizationTesting": {
@@ -73,7 +72,7 @@
   "compilation": {
     "platform": "crytic-compile",
     "platformConfig": {
-      "target": ".",
+      "target": "test/recon/Tester.sol",
       "solcVersion": "",
       "exportDirectory": "",
       "args": [

@@ -24,3 +24,8 @@ emv-*-certora*
 /types
 /cache_hardhat
 /artifacts
+
+echidna
+fuzzing-from-euler
+medusa
+.vscode

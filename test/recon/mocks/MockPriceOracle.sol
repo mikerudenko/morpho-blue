@@ -5,13 +5,13 @@ pragma solidity ^0.8.0;
 import "../../../src/interfaces/IOracle.sol";
 
 contract MockPriceOracle is IOracle {
-    uint256 private _price;
+    uint256 private _price = 12;
     uint8 public constant decimals = 18;
 
     function price() public view override returns (uint256) {
         // Implement the logic to return the price based on the stored prices.
         // This is a simplified example, you may need to adjust it based on your requirements.
-        return _price;
+        return _price * 10 ** decimals;
     }
 
     function setPrice(uint256 newPrice) external {

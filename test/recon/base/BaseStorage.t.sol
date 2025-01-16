@@ -13,6 +13,12 @@ pragma solidity ^0.8.19;
 // Utils
 import {Actor} from "../utils/Actor.sol";
 
+import {Morpho, MarketParams} from "../../../src/Morpho.sol";
+import {MarketParams} from "../../../src/interfaces/IMorpho.sol";
+import {MockPriceOracle} from "../mocks/MockPriceOracle.sol";
+import {TestERC20} from "../mocks/TestERC20.sol";
+import {IIrm} from "../../../src/interfaces/IIrm.sol";
+
 /// @notice BaseStorage contract for all test contracts, works in tandem with BaseTest
 abstract contract BaseStorage {
     ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -48,40 +54,13 @@ abstract contract BaseStorage {
     //                                       SUITE STORAGE                                       //
     ///////////////////////////////////////////////////////////////////////////////////////////////
 
-    // VAULT CONTRACTS
+    Morpho morpho;
+    TestERC20 loanToken;
+    TestERC20 collateralToken;
+    MockPriceOracle mockOracle;
+    MarketParams marketParams;
 
-    /// @notice Testing vaults
-    // EVaultExtended internal eTST;
-
-    // address[] vaults;
-
-    /// @notice Permit2 contract
-    address permit2;
-
-    // ASSETS
-    // ... to be added
-
-    /// @notice mock assets
-    // TestERC20 internal assetTST;
-
-    // CONFIGURATION stuff
-    // ... to be added
-
-    /// @notice vault factory contract
-    // GenericFactory internal factory;
-
-    /// @notice SequenceRegistry contract
-    address sequenceRegistry;
-
-    // MOCKS
-
-    /// @notice Price oracle mock contract
-    // MockPriceOracle internal oracle;
-
-    /// @notice Balance tracker mock contract
-    // address balanceTracker;
-
-    address feeReceiver;
+    IIrm irm;
 
     ///////////////////////////////////////////////////////////////////////////////////////////////
     //                                       EXTRA VARIABLES                                     //

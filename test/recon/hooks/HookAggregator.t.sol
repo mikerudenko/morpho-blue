@@ -4,11 +4,12 @@ pragma solidity ^0.8.19;
 // Hook Contracts
 // import {VaultBeforeAfterHooks} from "./VaultBeforeAfterHooks.t.sol";
 // import {BorrowingBeforeAfterHooks} from "./BorrowingBeforeAfterHooks.t.sol";
+import {BaseHooks} from "../base/BaseHooks.t.sol";
 // !Note specify your own contracts
 
 /// @title HookAggregator
 /// @notice Helper contract to aggregate all before / after hook contracts, inherited on each handler
-abstract contract HookAggregator {
+abstract contract HookAggregator is BaseHooks {
     /// @notice Modular hook selector, per module
     function _before() internal {
         // _vaultHooksBefore();

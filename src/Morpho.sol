@@ -1,23 +1,8 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.0;
 
-import {
-    Id,
-    IMorphoStaticTyping,
-    IMorphoBase,
-    MarketParams,
-    Position,
-    Market,
-    Authorization,
-    Signature
-} from "./interfaces/IMorpho.sol";
-import {
-    IMorphoLiquidateCallback,
-    IMorphoRepayCallback,
-    IMorphoSupplyCallback,
-    IMorphoSupplyCollateralCallback,
-    IMorphoFlashLoanCallback
-} from "./interfaces/IMorphoCallbacks.sol";
+import {Id, IMorphoStaticTyping, IMorphoBase, MarketParams, Position, Market, Authorization, Signature} from "./interfaces/IMorpho.sol";
+import {IMorphoLiquidateCallback, IMorphoRepayCallback, IMorphoSupplyCallback, IMorphoSupplyCollateralCallback, IMorphoFlashLoanCallback} from "./interfaces/IMorphoCallbacks.sol";
 import {IIrm} from "./interfaces/IIrm.sol";
 import {IERC20} from "./interfaces/IERC20.sol";
 import {IOracle} from "./interfaces/IOracle.sol";
@@ -30,6 +15,8 @@ import {MathLib, WAD} from "./libraries/MathLib.sol";
 import {SharesMathLib} from "./libraries/SharesMathLib.sol";
 import {MarketParamsLib} from "./libraries/MarketParamsLib.sol";
 import {SafeTransferLib} from "./libraries/SafeTransferLib.sol";
+
+import "forge-std/console2.sol";
 
 /// @title Morpho
 /// @author Morpho Labs
@@ -300,9 +287,12 @@ contract Morpho is IMorphoStaticTyping {
     /* COLLATERAL MANAGEMENT */
 
     /// @inheritdoc IMorphoBase
-    function supplyCollateral(MarketParams memory marketParams, uint256 assets, address onBehalf, bytes calldata data)
-        external
-    {
+    function supplyCollateral(
+        MarketParams memory marketParams,
+        uint256 assets,
+        address onBehalf,
+        bytes calldata data
+    ) external {
         Id id = marketParams.id();
         require(market[id].lastUpdate != 0, ErrorsLib.MARKET_NOT_CREATED);
         require(assets != 0, ErrorsLib.ZERO_ASSETS);
@@ -320,9 +310,12 @@ contract Morpho is IMorphoStaticTyping {
     }
 
     /// @inheritdoc IMorphoBase
-    function withdrawCollateral(MarketParams memory marketParams, uint256 assets, address onBehalf, address receiver)
-        external
-    {
+    function withdrawCollateral(
+        MarketParams memory marketParams,
+        uint256 assets,
+        address onBehalf,
+        address receiver
+    ) external {
         Id id = marketParams.id();
         require(market[id].lastUpdate != 0, ErrorsLib.MARKET_NOT_CREATED);
         require(assets != 0, ErrorsLib.ZERO_ASSETS);
@@ -372,11 +365,14 @@ contract Morpho is IMorphoStaticTyping {
                 uint256 seizedAssetsQuoted = seizedAssets.mulDivUp(collateralPrice, ORACLE_PRICE_SCALE);
 
                 repaidShares = seizedAssetsQuoted.wDivUp(liquidationIncentiveFactor).toSharesUp(
-                    market[id].totalBorrowAssets, market[id].totalBorrowShares
+                    market[id].totalBorrowAssets,
+                    market[id].totalBorrowShares
                 );
             } else {
-                seizedAssets = repaidShares.toAssetsDown(market[id].totalBorrowAssets, market[id].totalBorrowShares)
-                    .wMulDown(liquidationIncentiveFactor).mulDivDown(ORACLE_PRICE_SCALE, collateralPrice);
+                seizedAssets = repaidShares
+                    .toAssetsDown(market[id].totalBorrowAssets, market[id].totalBorrowShares)
+                    .wMulDown(liquidationIncentiveFactor)
+                    .mulDivDown(ORACLE_PRICE_SCALE, collateralPrice);
             }
         }
         uint256 repaidAssets = repaidShares.toAssetsUp(market[id].totalBorrowAssets, market[id].totalBorrowShares);
@@ -404,7 +400,14 @@ contract Morpho is IMorphoStaticTyping {
 
         // `repaidAssets` may be greater than `totalBorrowAssets` by 1.
         emit EventsLib.Liquidate(
-            id, msg.sender, borrower, repaidAssets, repaidShares, seizedAssets, badDebtAssets, badDebtShares
+            id,
+            msg.sender,
+            borrower,
+            repaidAssets,
+            repaidShares,
+            seizedAssets,
+            badDebtAssets,
+            badDebtShares
         );
 
         IERC20(marketParams.collateralToken).safeTransfer(msg.sender, seizedAssets);
@@ -459,7 +462,10 @@ contract Morpho is IMorphoStaticTyping {
         isAuthorized[authorization.authorizer][authorization.authorized] = authorization.isAuthorized;
 
         emit EventsLib.SetAuthorization(
-            msg.sender, authorization.authorizer, authorization.authorized, authorization.isAuthorized
+            msg.sender,
+            authorization.authorizer,
+            authorization.authorized,
+            authorization.isAuthorized
         );
     }
 
@@ -495,8 +501,10 @@ contract Morpho is IMorphoStaticTyping {
                 uint256 feeAmount = interest.wMulDown(market[id].fee);
                 // The fee amount is subtracted from the total supply in this calculation to compensate for the fact
                 // that total supply is already increased by the full interest (including the fee amount).
-                feeShares =
-                    feeAmount.toSharesDown(market[id].totalSupplyAssets - feeAmount, market[id].totalSupplyShares);
+                feeShares = feeAmount.toSharesDown(
+                    market[id].totalSupplyAssets - feeAmount,
+                    market[id].totalSupplyShares
+                );
                 position[id][feeRecipient].supplyShares += feeShares;
                 market[id].totalSupplyShares += feeShares.toUint128();
             }
@@ -524,15 +532,18 @@ contract Morpho is IMorphoStaticTyping {
     /// `collateralPrice` is healthy.
     /// @dev Assumes that the inputs `marketParams` and `id` match.
     /// @dev Rounds in favor of the protocol, so one might not be able to borrow exactly `maxBorrow` but one unit less.
-    function _isHealthy(MarketParams memory marketParams, Id id, address borrower, uint256 collateralPrice)
-        internal
-        view
-        returns (bool)
-    {
+    function _isHealthy(
+        MarketParams memory marketParams,
+        Id id,
+        address borrower,
+        uint256 collateralPrice
+    ) internal view returns (bool) {
         uint256 borrowed = uint256(position[id][borrower].borrowShares).toAssetsUp(
-            market[id].totalBorrowAssets, market[id].totalBorrowShares
+            market[id].totalBorrowAssets,
+            market[id].totalBorrowShares
         );
-        uint256 maxBorrow = uint256(position[id][borrower].collateral).mulDivDown(collateralPrice, ORACLE_PRICE_SCALE)
+        uint256 maxBorrow = uint256(position[id][borrower].collateral)
+            .mulDivDown(collateralPrice, ORACLE_PRICE_SCALE)
             .wMulDown(marketParams.lltv);
 
         return maxBorrow >= borrowed;
@@ -546,7 +557,7 @@ contract Morpho is IMorphoStaticTyping {
 
         res = new bytes32[](nSlots);
 
-        for (uint256 i; i < nSlots;) {
+        for (uint256 i; i < nSlots; ) {
             bytes32 slot = slots[i++];
 
             assembly ("memory-safe") {
