@@ -16,9 +16,9 @@ contract Actor {
     constructor(address[] memory _tokens, address[] memory _callers) {
         tokens = _tokens;
         callers = _callers;
-        for (uint256 i = 0; i < tokens.length; i++) {
-            IERC20(tokens[i]).approve(callers[i], type(uint256).max);
-        }
+        // for (uint256 i = 0; i < tokens.length; i++) {
+        //     IERC20(tokens[i]).approve(callers[i], type(uint256).max);
+        // }
     }
 
     /// @notice Helper function to proxy a call to a target contract, used to avoid Tester calling contracts
@@ -35,5 +35,5 @@ contract Actor {
         (success, returnData) = address(_target).call{value: value}(_calldata);
     }
 
-    receive() external payable {}
+    // receive() external payable {}
 }

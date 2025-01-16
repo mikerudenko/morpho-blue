@@ -16,6 +16,7 @@ import {UtilsLib} from "../../src/libraries/UtilsLib.sol";
 import {SharesMathLib} from "../../src/libraries/SharesMathLib.sol";
 import {SafeTransferLib} from "../../src/libraries/SafeTransferLib.sol";
 import {MarketParamsLib} from "../../src/libraries/MarketParamsLib.sol";
+import "forge-std/console.sol";
 
 // import "src/Counter.sol";
 
@@ -36,6 +37,7 @@ abstract contract Setup is BaseTest {
 
     function _deployMorpho() internal {
         morpho = new Morpho(address(this));
+        // vaults.push(address(morpho));
     }
 
     function _createMarket() internal {
@@ -77,6 +79,22 @@ abstract contract Setup is BaseTest {
         addresses[0] = USER1;
         addresses[1] = USER2;
         addresses[2] = USER3;
+
+        address[] memory tokens = new address[](2);
+        tokens[0] = address(loanToken);
+        tokens[1] = address(collateralToken);
+
+        for (uint256 i; i < NUMBER_OF_ACTORS; i++) {
+            // Deply actor proxies and approve system contracts
+            address _actor = _setUpActor(addresses[i], tokens, vaults);
+
+            // Mint initial balances to actors
+            for (uint256 j = 0; j < tokens.length; j++) {
+                TestERC20 _token = TestERC20(tokens[j]);
+                _token.mint(_actor, INITIAL_BALANCE);
+            }
+            actorAddresses.push(_actor);
+        }
     }
 
     function _setUpActor(
@@ -87,8 +105,8 @@ abstract contract Setup is BaseTest {
         bool success;
         Actor _actor = new Actor(tokens, callers);
         actors[userAddress] = _actor;
-        (success, ) = address(_actor).call{value: INITIAL_ETH_BALANCE}("");
-        assert(success);
+        // (success, ) = address(_actor).call{value: INITIAL_ETH_BALANCE}("");
+        // assert(success);
         actorAddress = address(_actor);
     }
 }

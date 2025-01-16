@@ -116,8 +116,6 @@ contract MorphoHandler is BaseHandler {
             abi.encodeWithSelector(IMorphoBase.supplyCollateral.selector, marketParams, assets, onBehalf, "")
         );
 
-        console.log("Supply collateral success: %s", success);
-
         if (success) {
             assert(true);
         }
@@ -141,23 +139,17 @@ contract MorphoHandler is BaseHandler {
         bool success;
         bytes memory returnData;
 
-        // (success, returnData) = actor.proxy(
-        //     address(morpho),
-        //     abi.encodeWithSelector(
-        //         IMorphoBase.liquidate.selector,
-        //         MarketParams({
-        //             loanToken: address(loantoken),
-        //             collateralToken: address(collateralToken),
-        //             oracle: address(eTST),
-        //             irm: address(eTST),
-        //             lltv: 0
-        //         }),
-        //         borrower,
-        //         seizedAssets,
-        //         repaidShares,
-        //         ""
-        //     )
-        // );
+        (success, returnData) = actor.proxy(
+            address(morpho),
+            abi.encodeWithSelector(
+                IMorphoBase.liquidate.selector,
+                marketParams,
+                borrower,
+                seizedAssets,
+                repaidShares,
+                ""
+            )
+        );
 
         if (success) {
             assert(true);
@@ -168,10 +160,10 @@ contract MorphoHandler is BaseHandler {
         bool success;
         bytes memory returnData;
 
-        // (success, returnData) = actor.proxy(
-        //     address(eTST),
-        //     abi.encodeWithSelector(IMorphoBase.flashLoan.selector, token, assets, "")
-        // );
+        (success, returnData) = actor.proxy(
+            address(morpho),
+            abi.encodeWithSelector(IMorphoBase.flashLoan.selector, token, assets, "")
+        );
 
         if (success) {
             assert(true);
