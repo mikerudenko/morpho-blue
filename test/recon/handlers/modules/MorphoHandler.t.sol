@@ -169,6 +169,21 @@ contract MorphoHandler is BaseHandler {
             assert(true);
         }
     }
+
+    function accrueInterest() external withActor {
+        bool success;
+        bytes memory returnData;
+
+        (success, returnData) = actor.proxy(
+            address(morpho),
+            abi.encodeWithSelector(IMorphoBase.accrueInterest.selector, marketParams)
+        );
+
+        if (success) {
+            assert(true);
+        }
+    }
+
     ///////////////////////////////////////////////////////////////////////////////////////////////
     //                                     ROUNDTRIP PROPERTIES                                  //
     ///////////////////////////////////////////////////////////////////////////////////////////////

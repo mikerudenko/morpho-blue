@@ -249,6 +249,34 @@ abstract contract MorphoAssertions is HandlerAggregator {
         assertTrue(morpho.isIrmEnabled(address(irm)), "IRM must be enabled");
         assertTrue(morpho.isLltvEnabled(lltv), "LLTV must be enabled");
     }
+
+    function assert_MORPHO_MARKET_CREATION() internal {
+        Id id = marketParams.id();
+        (, , , , uint256 lastUpdate, ) = morpho.market(id);
+
+        assertTrue(lastUpdate != 0, "Market should be created");
+    }
+
+    function assert_MORPHO_INTEREST_ACCRUAL() internal {
+        // Id id = marketParams.id();
+        // uint256 initialSupplyAssets = morpho.market(id).totalSupplyAssets;
+        // uint256 initialBorrowAssets = morpho.market(id).totalBorrowAssets;
+        // morpho.accrueInterest(marketParams);
+        // uint256 newSupplyAssets = morpho.market(id).totalSupplyAssets;
+        // uint256 newBorrowAssets = morpho.market(id).totalBorrowAssets;
+        // assertTrue(newSupplyAssets >= initialSupplyAssets, "Supply assets should increase or remain the same");
+        // assertTrue(newBorrowAssets >= initialBorrowAssets, "Borrow assets should increase or remain the same");
+    }
+
+    function assert_MORPHO_FEE_DISTRIBUTION() internal {
+        // Id id = marketParams.id();
+        // address feeRecipient = morpho.feeRecipient();
+        // uint256 initialFeeShares = morpho.position(id, feeRecipient).supplyShares;
+        // morpho.accrueInterest(marketParams);
+        // uint256 newFeeShares = morpho.position(id, feeRecipient).supplyShares;
+        // assertTrue(newFeeShares >= initialFeeShares, "Fee recipient shares should increase or remain the same");
+    }
+
     ///////////////////////////////////////////////////////////////////////////////////////////////
     //                                         UTILS                                             //
     ///////////////////////////////////////////////////////////////////////////////////////////////

@@ -1,0 +1,128 @@
+Collecting workspace information
+
+# Curvance Project
+
+## Stateful Deployment Tests
+- **CURV-1:** The central registry has the daoAddress set to the deployer. Ensures the correct initial setup of the DAO address.
+- **CURV-2:** The central registry has the timelock address set to the deployer. Ensures the correct initial setup of the timelock address.
+- **CURV-3:** The central registry has the emergency council address set to the deployer. Ensures the correct initial setup of the emergency council address.
+- **CURV-4:** The central registry’s genesis Epoch is equal to zero. Ensures the correct initial setup of the genesis epoch.
+- **CURV-5:** The central registry’s sequencer is set to address(0). Ensures the correct initial setup of the sequencer address.
+- **CURV-6:** The central registry has granted the deployer permissions. Ensures the correct initial setup of permissions.
+- **CURV-7:** The central registry has granted the deployer elevated permissions. Ensures the correct initial setup of elevated permissions.
+- **CURV-8:** The central registry has the cve address setup correctly. Ensures the correct initial setup of the CVE address.
+- **CURV-9:** The central registry has the veCVE address setup correctly. Ensures the correct initial setup of the veCVE address.
+- **CURV-10:** The central registry has the cveLocker setup correctly. Ensures the correct initial setup of the CVE Locker.
+- **CURV-11:** The central registry has the protocol messaging hub setup correctly. Ensures the correct initial setup of the protocol messaging hub.
+- **CURV-12:** The CVE contract is mapped to the centralRegistry correctly. Ensures the correct mapping of the CVE contract.
+- **CURV-13:** The CVE contract’s team address is set to the deployer. Ensures the correct initial setup of the team address.
+- **CURV-14:** The CVE’s dao treasury allocation is set to 10000 ether. Ensures the correct initial setup of the DAO treasury allocation.
+- **CURV-15:** The CVE dao’s team allocation per month is greater than zero. Ensures the correct initial setup of the team allocation per month.
+- **CURV-16:** The Market Manager’s gauge pool is set up correctly. Ensures the correct initial setup of the gauge pool.
+
+## FuzzVECVE – Functional Invariants
+- **VECVE-1:** Creating a lock with a specified amount when the system is not in a shutdown state should succeed, with preLockCVEBalance matching postLockCVEBalance + amount and preLockVECVEBalance + amount matching postLockVECVEBalance. Ensures correct lock creation.
+- **VECVE-2:** Creating a lock with an amount less than WAD should fail and revert with an error message indicating invalid lock amount. Ensures minimum lock amount.
+- **VECVE-3:** Creating a lock with zero amount should fail and revert with an error message indicating an invalid lock amount. Ensures non-zero lock amount.
+- **VECVE-4:** Combining all continuous locks into a single continuous lock should result in identical user points before and after the operation. Ensures correct combination of continuous locks.
+- **VECVE-5:** Combining all continuous locks into a single continuous lock should result in an increase in user points being greater than veCVE balance * MULTIPLIER / WAD. Ensures correct point calculation.
+- **VECVE-6:** Combining all continuous locks into a single continuous lock should result in chainUnlocksByEpoch being equal to 0. Ensures correct epoch unlocks.
+- **VECVE-7:** Combining all continuous locks into a single continuous lock should result in chainUnlocksByEpoch being equal to 0. Ensures correct epoch unlocks.
+- **VECVE-8:** Combining all non-continuous locks into a single non-continuous lock should result in the combined lock amount matching the sum of original lock amounts. Ensures correct lock amount.
+- **VECVE-9:** Combining all continuous locks into a single continuous lock should result in resulting user points times the CL_POINT_MULTIPLIER being greater than or equal to the balance of veCVE. Ensures correct point calculation.
+- **VECVE-10:** Combining non-continuous locks into continuous lock terminals should result in increased post combine user points compared to the pre combine user points. Ensures correct point calculation.
+- **VECVE-11:** Combining non-continuous locks into continuous lock terminals should result in the userUnlockByEpoch value decreasing for each respective epoch. Ensures correct epoch unlocks.
+- **VECVE-12:** Combining non-continuous locks into continuous lock terminals should result in chainUnlockByEpoch decreasing for each respective epoch. Ensures correct epoch unlocks.
+- **VECVE-13:** Combining non-continuous locks to continuous locks should result in chainUnlockByEpochs being equal to 0. Ensures correct epoch unlocks.
+- **VECVE-14:** Combining non-continuous locks to continuous locks should result in the userUnlocksByEpoch being equal to 0. Ensures correct epoch unlocks.
+- **VECVE-15:** Combining any locks to a non continuous terminal should result in the amount for the combined terminal matching the sum of original lock amounts. Ensures correct lock amount.
+- **VECVE-16:** Combining some continuous locks to a non continuous terminal should result in user points decreasing. Ensures correct point calculation.
+- **VECVE-17:** Combining no prior continuous locks to a non continuous terminal should result in no change in user points. Ensures correct point calculation.
+- **VECVE-18:** Combining some prior continuous locks to a non continuous terminal should result in the veCVE balance of a user equaling the user points. Ensures correct point calculation.
+- **VECVE-19:** Processing an expired lock should fail when the lock index is incorrect or exceeds the length of created locks. Ensures correct lock processing.
+- **VECVE-20:** Disabling a continuous lock for a user’s continuous lock results in a decrease of user points. Ensures correct point calculation.
+- **VECVE-21:** Disable continuous lock for a user’s continuous lock results in a decrease of chain points. Ensures correct point calculation.
+- **VECVE-22:** Disable continuous lock for a user’s continuous lock results in an increase of amount to chainUnlocksByEpoch. Ensures correct epoch unlocks.
+- **VECVE-23:** Disable continuous lock should for a user’s continuous lock results in preUserUnlocksByEpoch + amount matching postUserUnlocksByEpoch. Ensures correct epoch unlocks.
+- **VECVE-24:** Trying to extend a lock that is already continuous should fail and revert with an error message indicating a lock type mismatch. Ensures correct lock extension.
+- **VECVE-25:** Trying to extend a lock when the system is in shutdown should fail and revert with an error message indicating that the system is shut down. Ensures correct lock extension.
+- **VECVE-26:** Shutting down the contract when the caller has elevated permissions should result in the veCVE.isShutdown = 2. Ensures correct shutdown process.
+- **VECVE-27:** Shutting down the contract when the caller has elevated permissions should result in the cveLocker.isShutdown = 2. Ensures correct shutdown process.
+- **VECVE-28:** Shutting down the contract when the caller has elevated permissions, and the system is not already shut down should never revert unexpectedly. Ensures correct shutdown process.
+- **VECVE-29:** Calling extendLock with continuousLock set to 'true' should set the post extend lock time to CONTINUOUS_LOCK_VALUE. Ensures correct lock extension.
+- **VECVE-30:** Calling extendLock for noncontinuous extension in the same epoch should not change the unlock epoch. Ensures correct lock extension.
+- **VECVE-31:** Calling extendLock for noncontinuous extension in a future epoch should increase the unlock time. Ensures correct lock extension.
+- **VECVE-32:** Calling extendLock with correct preconditions should not revert. Ensures correct lock extension.
+- **VECVE-33:** Increasing the amount and extending the lock should succeed if the lock is continuous. Ensures correct lock extension.
+- **VECVE-34:** Increasing the lock amount and extending a continuous lock's validity should succeed, with preLockCVEBalance matching postLockCVEBalance + amount. Ensures correct lock extension.
+- **VECVE-35:** Increasing the lock amount and extending a continuous lock's validity should succeed, with preLockVECVEBalance + amount matching postLockVECVEBalance. Ensures correct lock extension.
+- **VECVE-36:** Increasing the amount and extending the lock should succeed if the lock is non-continuous. Ensures correct lock extension.
+- **VECVE-37:** Increasing the lock amount and extending a non-continuous lock's validity should succeed, with preLockCVEBalance matching postLockCVEBalance + amount. Ensures correct lock extension.
+- **VECVE-38:** Increasing the lock amount and extending a non-continuous lock's validity should succeed, with preLockVECVEBalance + amount matching postLockVECVEBalance. Ensures correct lock extension.
+- **VECVE-39:** Processing an expired lock for an existing lock in a shutdown contract should complete successfully. Ensures correct lock processing.
+- **VECVE-40:** Processing a lock in a shutdown contract results in decreasing user points. Ensures correct point calculation.
+- **VECVE-41:** Processing a lock in a shutdown contract results in decreasing chain points. Ensures correct point calculation.
+- **VECVE-42:** Processing a non-continuous lock in a shutdown contract results in preChainUnlocksByEpoch - amount being equal to postChainUnlocksByEpoch. Ensures correct epoch unlocks.
+- **VECVE-43:** Processing a non-continuous lock in a shutdown contract results in preUserUnlocksByEpoch - amount being equal to postUserUnlocksByEpoch. Ensures correct epoch unlocks.
+- **VECVE-44:** Processing a lock in a shutdown contract results in increasing cve tokens. Ensures correct token processing.
+- **VECVE-45:** Processing a lock in a shutdown contract results in decreasing vecve tokens. Ensures correct token processing.
+- **VECVE-46:** Processing a lock in a shutdown contract results in decreasing number of user locks. Ensures correct lock processing.
+- **VECVE-47:** Processing a lock should complete successfully if unlock time is expired. Ensures correct lock processing.
+- **VECVE-48:** Processing a lock in a shutdown contract results in decreasing chain points. Ensures correct point calculation.
+- **VECVE-49:** Processing a non-continuous lock in a shutdown contract results in preChainUnlocksByEpoch - amount being equal to postChainUnlocksByEpoch. Ensures correct epoch unlocks.
+- **VECVE-50:** Processing a non-continuous lock in a shutdown contract results in preUserUnlocksByEpoch - amount being equal to postUserUnlocksByEpoch. Ensures correct epoch unlocks.
+- **VECVE-51:** Processing an expired lock without a relocking option results in increasing cve tokens. Ensures correct token processing.
+- **VECVE-52:** Processing an expired lock without a relocking option results in decreasing vecve tokens. Ensures correct token processing.
+- **VECVE-53:** Processing an expired lock without relocking should result in user points being equal. Ensures correct point calculation.
+- **VECVE-54:** Processing an expired lock without relocking should result in chain points being equal if epochs to claim = 0. Ensures correct point calculation.
+- **VECVE-55:** Processing expired locks with relock should not change the number of locks a user has. Ensures correct lock processing.
+- **VECVE-56:** Combining locks should not be possible when the system is shut down. Ensures correct lock processing.
+- **VECVE-57:** Processing expired locks without relocking should decrease user points if epoch to claim > 0. Ensures correct point calculation.
+- **VECVE-58:** Creating a lock with the correct preconditions should not revert. Ensures correct lock creation.
+- **VECVE-59:** Combining non-continuous locks to continuous locks should be successful with correct preconditions. Ensures correct lock processing.
+- **VECVE-60:** Combining some prior continuous locks to non continuous terminals should be successful with correct preconditions. Ensures correct lock processing.
+
+## FuzzVECVE – System Invariants
+- **S-VECVE-1:** Balance of veCVE must equal to the sum of all non-continuous lock amounts. Ensures correct balance calculation.
+- **S-VECVE-2:** User unlocks by epoch should be greater than 0 for all non-continuous locks. Ensures correct epoch unlocks.
+- **S-VECVE-3:** User unlocks by epoch should be 0 for all continuous locks. Ensures correct epoch unlocks.
+- **S-VECVE-4:** Chain unlocks by epoch should be greater than 0 for all non-continuous locks. Ensures correct epoch unlocks.
+- **S-VECVE-5:** Chain unlocks by epoch should be 0 for all continuous locks. Ensures correct epoch unlocks.
+- **S-VECVE-6:** The sum of all user unlock epochs for each epoch must be less than or equal to the user points. Ensures correct point calculation.
+- **S-VECVE-7:** The contract should only have a zero cve balance when there are no user locks. Ensures correct balance calculation.
+
+## Market Manager - Functional Invariants
+- **MARKET-1:** Once a new token is listed, isListed(mtoken) should return true. Ensures correct token listing.
+- **MARKET-2:** A token already added to the MarketManager cannot be added again. Ensures no duplicate token listing.
+- **MARKET-3:** A user can deposit into an mtoken provided that they have the underlying asset, and they have approved the mtoken contract. Ensures correct deposit process.
+- **MARKET-4:** When depositing assets into the mtoken, the wrapped token balance for the user should increase. Ensures correct balance update.
+- **MARKET-5:** Calling updateCollateralToken with variables in the correct bounds should succeed. Ensures correct collateral update.
+- **MARKET-6:** Calling updateCollateralToken with divergence in prices too large should fail with PriceError. Ensures correct price handling.
+- **MARKET-7:** Calling updateCollateralToken where price returns PriceError should fail with PriceError. Ensures correct price handling.
+- **MARKET-8:** Calling updateCollateralToken on a token with a non-zero collateral ratio should not allow the new collateral ratio to be set to zero. Ensures correct collateral ratio.
+- **MARKET-9:** Setting the collateral caps for a token should increase the globally set value for the specific token. Ensures correct collateral cap update.
+- **MARKET-10:** Setting collateral caps for a token given permissions and collateral values being set should succeed. Ensures correct collateral cap update.
+- **MARKET-12:** With the correct bounds on input, updateCollateralToken should revert if the price feed is out of date. Ensures correct price handling.
+- **MARKET-13:** After collateral is posted, the user’s collateral posted position for the respective asset should increase. Ensures correct collateral posting.
+- **MARKET-14:** After collateral is posted, calling hasPosition on the user’s mtoken should return true. Ensures correct position update.
+- **MARKET-15:** After collateral is posted, the global collateral for the mtoken should increase by the amount posted. Ensures correct collateral update.
+- **MARKET-16:** When price feed is up to date, address(this) has mtoken, tokens are bound correctly, and caller is correct, the postCollateral call should succeed. Ensures correct collateral posting.
+- **MARKET-17:** Trying to post too much collateral should revert. Ensures correct collateral posting.
+- **MARKET-18:** Removing collateral from the system should decrease the global posted collateral by the removed amount. Ensures correct collateral removal.
+- **MARKET-19:** Removing collateral from the system should reduce the user posted collateral by the removed amount. Ensures correct collateral removal.
+- **MARKET-20:** If the user has a liquidity shortfall, the user should not be permitted to remove collateral (function should fail with insufficient collateral selector hash). Ensures correct collateral removal.
+- **MARKET-21:** If the user does not have a liquidity shortfall and meets expected preconditions, the removeCollateral should be successful. Ensures correct collateral removal.
+- **MARKET-22:** If new collateral for user after removing is = 0 and a user wants to close position, the user should no longer have a position in the asset. Ensures correct position update.
+- **MARKET-23:** Removing collateral for a nonexistent position should revert with invariant error hash. Ensures correct collateral removal.
+- **MARKET-24:** Removing more tokens than a user has for collateral should revert with insufficient collateral hash. Ensures correct collateral removal.
+- **MARKET-25:** Calling reduceCollateralIfNecessary should fail when not called within the context of the mtoken. Ensures correct collateral handling.
+- **MARKET-26:** Calling closePosition with correct preconditions should remove a position in the mtoken, where collateral posted for the user is greater than 0. Ensures correct position update.
+- **MARKET-27:** Calling closePosition with correct preconditions should set collateralPosted for the user’s mtoken to zero, where collateral posted for the user is greater than 0. Ensures correct position update.
+- **MARKET-28:** Calling closePosition with correct preconditions should reduce the user asset list by 1 element, where collateral posted for the user is greater than 0. Ensures correct position update.
+- **MARKET-29:** Calling closePosition with correct preconditions should succeed, where collateral posted for the user is greater than 0. Ensures correct position update.
+- **MARKET-30:** In a shortfall, closePosition should revert with insufficient collateral error. Ensures correct position update.
+- **MARKET-31:** Calling closePosition with correct preconditions should remove a position in the mtoken, where collateral posted for the user is equal to 0. Ensures correct position update.
+- **MARKET-32:** Calling closePosition with correct preconditions should set collateralPosted for the user’s mtoken to zero, where collateral posted for the user is equal to 0. Ensures correct position update.
+- **MARKET-33:** Calling closePosition with correct preconditions should reduce the user asset list by 1 element, where collateral posted for the user is equal to 0. Ensures correct position update.
+- **MARKET-34:** Calling closePosition with correct preconditions should succeed, where collateral posted for the user is equal to 0. Ensures correct position update.
+- **MARKET-35:** Liquidating an entire account should succeed with the correct preconditions.
