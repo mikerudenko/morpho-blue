@@ -77,7 +77,7 @@ contract TestERC20 {
         emit Transfer(src, dst, wad);
         return true;
     }
-    function mint(address usr, uint wad) external virtual auth {
+    function mint(address usr, uint256 wad) external {
         balanceOf[usr] = safeAdd_(balanceOf[usr], wad);
         totalSupply = safeAdd_(totalSupply, wad);
         emit Transfer(address(0), usr, wad);
@@ -92,7 +92,7 @@ contract TestERC20 {
         totalSupply = safeSub_(totalSupply, wad);
         emit Transfer(usr, address(0), wad);
     }
-    function approve(address usr, uint wad) external returns (bool) {
+    function approve(address usr, uint256 wad) external returns (bool) {
         allowance[msg.sender][usr] = wad;
         emit Approval(msg.sender, usr, wad);
         return true;

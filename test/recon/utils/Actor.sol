@@ -3,6 +3,10 @@ pragma solidity ^0.8.19;
 
 // Interfaces
 import {IERC20} from "forge-std/interfaces/IERC20.sol";
+import {TestERC20} from "../mocks/TestERC20.sol";
+
+import "forge-std/console2.sol";
+import "forge-std/console.sol";
 
 /// @title Actor
 /// @notice Proxy contract for invariant suite actors to avoid Tester calling contracts
@@ -13,12 +17,12 @@ contract Actor {
     /// @notice list of callers to approve tokens to
     address[] internal callers;
 
-    constructor(address[] memory _tokens, address[] memory _callers) {
+    constructor(address[] memory _tokens, address _caller) {
         tokens = _tokens;
-        callers = _callers;
-        // for (uint256 i = 0; i < tokens.length; i++) {
-        //     IERC20(tokens[i]).approve(callers[i], type(uint256).max);
-        // }
+
+        for (uint256 i = 0; i < tokens.length; i++) {
+            TestERC20(tokens[i]).approve(_caller, type(uint256).max);
+        }
     }
 
     /// @notice Helper function to proxy a call to a target contract, used to avoid Tester calling contracts
@@ -33,6 +37,10 @@ contract Actor {
         uint256 value
     ) public returns (bool success, bytes memory returnData) {
         (success, returnData) = address(_target).call{value: value}(_calldata);
+    }
+
+    function onMorphoFlashLoan(uint256 assets, bytes calldata data) external {
+        console.log("onMorphoFlashLoan called");
     }
 
     // receive() external payable {}

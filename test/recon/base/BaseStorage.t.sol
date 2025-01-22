@@ -13,7 +13,7 @@ pragma solidity ^0.8.19;
 // Utils
 import {Actor} from "../utils/Actor.sol";
 
-import {Morpho, MarketParams} from "../../../src/Morpho.sol";
+import {Morpho, MarketParams, Id} from "../../../src/Morpho.sol";
 import {MarketParams} from "../../../src/interfaces/IMorpho.sol";
 import {MockPriceOracle} from "../mocks/MockPriceOracle.sol";
 import {TestERC20} from "../mocks/TestERC20.sol";
@@ -50,19 +50,24 @@ abstract contract BaseStorage {
     /// @notice Array of all actor addresses
     address[] internal actorAddresses;
 
+    address[] public tokens;
+    MarketParams activeMarketParams;
+
+    Id[] public marketIds;
+
+    address current_owner;
+
     ///////////////////////////////////////////////////////////////////////////////////////////////
     //                                       SUITE STORAGE                                       //
     ///////////////////////////////////////////////////////////////////////////////////////////////
 
     Morpho morpho;
-    TestERC20 loanToken;
-    TestERC20 collateralToken;
+
     MockPriceOracle mockOracle;
-    MarketParams marketParams;
 
-    IIrm irm;
+    IIrm mockIRM;
 
-    address[] vaults;
+    // address[] vaults;
 
     ///////////////////////////////////////////////////////////////////////////////////////////////
     //                                       EXTRA VARIABLES                                     //

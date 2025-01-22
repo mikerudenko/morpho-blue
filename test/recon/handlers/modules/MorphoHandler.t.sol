@@ -4,8 +4,8 @@ pragma solidity ^0.8.19;
 // Test Contracts
 import {Actor} from "../../utils/Actor.sol";
 import {BaseHandler} from "../../base/BaseHandler.t.sol";
-import {IMorphoBase} from "../../../../src/interfaces/IMorpho.sol";
-import {MarketParams} from "../../../../src/interfaces/IMorpho.sol";
+import {IMorphoBase, Authorization, Signature} from "../../../../src/interfaces/IMorpho.sol";
+import {MarketParams, Id} from "../../../../src/interfaces/IMorpho.sol";
 import "forge-std/console.sol";
 
 // Interfaces
@@ -51,13 +51,31 @@ contract MorphoHandler is BaseHandler {
         }
     }
     */
-    function supply(uint256 assets, address onBehalf) external withActor {
+
+    function selectActiveMarketParams(uint256 index) external {
+        uint256 randomIndex = index % marketIds.length;
+
+        Id id = marketIds[randomIndex];
+
+        (address loanToken, address collateralToken, address oracle, address irm, uint256 lltv) = morpho
+            .idToMarketParams(id);
+
+        activeMarketParams = MarketParams({
+            irm: irm,
+            lltv: lltv,
+            oracle: oracle,
+            loanToken: loanToken,
+            collateralToken: collateralToken
+        });
+    }
+
+    function supply(uint256 assets, uint256 shares, address onBehalf) external withActor {
         bool success;
         bytes memory returnData;
 
         (success, returnData) = actor.proxy(
             address(morpho),
-            abi.encodeWithSelector(IMorphoBase.supply.selector, marketParams, assets, 0, onBehalf, "")
+            abi.encodeWithSelector(IMorphoBase.supply.selector, activeMarketParams, assets, shares, onBehalf, "")
         );
 
         if (success) {
@@ -65,18 +83,44 @@ contract MorphoHandler is BaseHandler {
         }
     }
 
-    function withdraw(uint256 assets, address onBehalf, address receiver) external withActor {
+    function supplyWithZeroAssets(uint256 shares, address onBehalf) external withActor {
+        this.supply(0, shares, onBehalf);
+    }
+
+    function _warpTime(uint256 timePassed) external {
+        uint warpTime = clampBetween(timePassed, 0, 1000);
+        vm.warp(warpTime);
+    }
+
+    function withdraw(uint256 assets, uint256 shares, address onBehalf, address receiver) external withActor {
         bool success;
         bytes memory returnData;
 
         (success, returnData) = actor.proxy(
             address(morpho),
-            abi.encodeWithSelector(IMorphoBase.withdraw.selector, marketParams, assets, 0, onBehalf, receiver)
+            abi.encodeWithSelector(
+                IMorphoBase.withdraw.selector,
+                activeMarketParams,
+                assets,
+                shares,
+                onBehalf,
+                receiver
+            )
         );
 
         if (success) {
             assert(true);
         }
+    }
+
+    // TODO withdraw on behalf case
+
+    function withdrawWithShares(uint256 shares, address onBehalf, address receiver) external withActor {
+        this.withdraw(0, shares, msg.sender, receiver);
+    }
+
+    function withdrawWithMsgSenderShares(uint256 assets, uint256 shares, address receiver) external withActor {
+        this.withdraw(assets, shares, address(actor), receiver);
     }
 
     function borrow(uint256 assets, address onBehalf, address receiver) external withActor {
@@ -85,7 +129,7 @@ contract MorphoHandler is BaseHandler {
 
         (success, returnData) = actor.proxy(
             address(morpho),
-            abi.encodeWithSelector(IMorphoBase.borrow.selector, marketParams, assets, 0, onBehalf, receiver)
+            abi.encodeWithSelector(IMorphoBase.borrow.selector, activeMarketParams, assets, 0, onBehalf, receiver)
         );
 
         if (success) {
@@ -99,7 +143,7 @@ contract MorphoHandler is BaseHandler {
 
         (success, returnData) = actor.proxy(
             address(morpho),
-            abi.encodeWithSelector(IMorphoBase.repay.selector, marketParams, assets, 0, onBehalf, "")
+            abi.encodeWithSelector(IMorphoBase.repay.selector, activeMarketParams, assets, 0, onBehalf, "")
         );
 
         if (success) {
@@ -113,7 +157,7 @@ contract MorphoHandler is BaseHandler {
 
         (success, returnData) = actor.proxy(
             address(morpho),
-            abi.encodeWithSelector(IMorphoBase.supplyCollateral.selector, marketParams, assets, onBehalf, "")
+            abi.encodeWithSelector(IMorphoBase.supplyCollateral.selector, activeMarketParams, assets, onBehalf, "")
         );
 
         if (success) {
@@ -127,7 +171,13 @@ contract MorphoHandler is BaseHandler {
 
         (success, returnData) = actor.proxy(
             address(morpho),
-            abi.encodeWithSelector(IMorphoBase.withdrawCollateral.selector, marketParams, assets, onBehalf, receiver)
+            abi.encodeWithSelector(
+                IMorphoBase.withdrawCollateral.selector,
+                activeMarketParams,
+                assets,
+                onBehalf,
+                receiver
+            )
         );
 
         if (success) {
@@ -143,7 +193,7 @@ contract MorphoHandler is BaseHandler {
             address(morpho),
             abi.encodeWithSelector(
                 IMorphoBase.liquidate.selector,
-                marketParams,
+                activeMarketParams,
                 borrower,
                 seizedAssets,
                 repaidShares,
@@ -176,7 +226,55 @@ contract MorphoHandler is BaseHandler {
 
         (success, returnData) = actor.proxy(
             address(morpho),
-            abi.encodeWithSelector(IMorphoBase.accrueInterest.selector, marketParams)
+            abi.encodeWithSelector(IMorphoBase.accrueInterest.selector, activeMarketParams)
+        );
+
+        if (success) {
+            assert(true);
+        }
+    }
+
+    function setOwner(address newOwner) external {
+        vm.prank(current_owner);
+        morpho.setOwner(newOwner);
+
+        current_owner = newOwner;
+    }
+
+    function setFee(uint256 newFee) external {
+        vm.prank(current_owner);
+        morpho.setFee(activeMarketParams, newFee);
+    }
+
+    function setFeeRecipient(address newFeeRecipient) external withActor {
+        vm.prank(current_owner);
+        morpho.setFeeRecipient(newFeeRecipient);
+    }
+
+    function setAuthorization(address authorized, bool newIsAuthorized) external withActor {
+        bool success;
+        bytes memory returnData;
+
+        (success, returnData) = actor.proxy(
+            address(morpho),
+            abi.encodeWithSelector(IMorphoBase.setAuthorization.selector, authorized, newIsAuthorized)
+        );
+
+        if (success) {
+            assert(true);
+        }
+    }
+
+    function setAuthorizationWithSig(
+        Authorization calldata authorization,
+        Signature calldata signature
+    ) external withActor {
+        bool success;
+        bytes memory returnData;
+
+        (success, returnData) = actor.proxy(
+            address(morpho),
+            abi.encodeWithSelector(IMorphoBase.setAuthorizationWithSig.selector, authorization, signature)
         );
 
         if (success) {

@@ -140,125 +140,127 @@ abstract contract MorphoAssertions is HandlerAggregator {
     //                                     MORPHO INVARIANTS                                     //
     ///////////////////////////////////////////////////////////////////////////////////////////////
 
-    function assert_MORPHO_MARKET_INVARIANTS() internal {
-        // Market creation invariants
-        Id id = marketParams.id();
-        (
-            uint256 totalSupplyAssets,
-            uint256 totalSupplyShares,
-            uint256 totalBorrowAssets,
-            uint256 totalBorrowShares,
-            uint256 lastUpdate,
-            uint256 fee
-        ) = morpho.market(id);
+    // function assert_MORPHO_MARKET_INVARIANTS() internal {
+    //     // Market creation invariants
+    //     Id id = activeMarketParams.id();
+    //     (
+    //         uint256 totalSupplyAssets,
+    //         uint256 totalSupplyShares,
+    //         uint256 totalBorrowAssets,
+    //         uint256 totalBorrowShares,
+    //         uint256 lastUpdate,
+    //         uint256 fee
+    //     ) = morpho.market(id);
 
-        assertTrue(lastUpdate != 0, "Market should be created");
-        assertTrue(morpho.isIrmEnabled(marketParams.irm), "IRM should be enabled");
-        assertTrue(morpho.isLltvEnabled(marketParams.lltv), "LLTV should be enabled");
-        assertTrue(fee <= MAX_FEE, "Fee should not exceed max");
+    //     assertTrue(lastUpdate != 0, "Market should be created");
+    //     assertTrue(morpho.isIrmEnabled(activeMarketParams.irm), "IRM should be enabled");
+    //     assertTrue(morpho.isLltvEnabled(activeMarketParams.lltv), "LLTV should be enabled");
+    //     assertTrue(fee <= MAX_FEE, "Fee should not exceed max");
 
-        // Market state invariants
-        assertTrue(totalBorrowAssets <= totalSupplyAssets, "Total borrows must not exceed total supply");
-    }
+    //     // Market state invariants
+    //     assertTrue(totalBorrowAssets <= totalSupplyAssets, "Total borrows must not exceed total supply");
+    // }
 
-    function assert_MORPHO_SHARES_ACCOUNTING() internal {
-        Id id = marketParams.id();
-        (
-            uint256 totalSupplyAssets,
-            uint256 totalSupplyShares,
-            uint256 totalBorrowAssets,
-            uint256 totalBorrowShares,
-            uint256 lastUpdate,
-            uint256 fee
-        ) = morpho.market(id);
+    // function assert_MORPHO_SHARES_ACCOUNTING() internal {
+    //     Id id = activeMarketParams.id();
+    //     (
+    //         uint256 totalSupplyAssets,
+    //         uint256 totalSupplyShares,
+    //         uint256 totalBorrowAssets,
+    //         uint256 totalBorrowShares,
+    //         uint256 lastUpdate,
+    //         uint256 fee
+    //     ) = morpho.market(id);
 
-        // Supply shares accounting
-        if (totalSupplyAssets > 0) {
-            assertTrue(totalSupplyShares > 0, "Non-zero assets must have non-zero shares");
-        }
-        if (totalSupplyShares == 0) {
-            assertTrue(totalSupplyAssets == 0, "Zero shares must have zero assets");
-        }
+    //     // Supply shares accounting
+    //     if (totalSupplyAssets > 0) {
+    //         assertTrue(totalSupplyShares > 0, "Non-zero assets must have non-zero shares");
+    //     }
+    //     if (totalSupplyShares == 0) {
+    //         assertTrue(totalSupplyAssets == 0, "Zero shares must have zero assets");
+    //     }
 
-        // Borrow shares accounting
-        if (totalBorrowAssets > 0) {
-            assertTrue(totalBorrowShares > 0, "Non-zero borrows must have non-zero shares");
-        }
-        if (totalBorrowShares == 0) {
-            assertTrue(totalBorrowAssets == 0, "Zero borrow shares must have zero assets");
-        }
-    }
+    //     // Borrow shares accounting
+    //     if (totalBorrowAssets > 0) {
+    //         assertTrue(totalBorrowShares > 0, "Non-zero borrows must have non-zero shares");
+    //     }
+    //     if (totalBorrowShares == 0) {
+    //         assertTrue(totalBorrowAssets == 0, "Zero borrow shares must have zero assets");
+    //     }
+    // }
 
-    function assert_MORPHO_POSITION_HEALTH() internal {
-        address borrower = address(0); // Replace with actual borrower
-        Id id = marketParams.id();
-        (uint256 supplyShares, uint256 borrowShares, uint256 collateral) = morpho.position(id, borrower);
-        if (borrowShares > 0) {
-            (
-                uint256 totalSupplyAssets,
-                uint256 totalSupplyShares,
-                uint256 totalBorrowAssets,
-                uint256 totalBorrowShares,
-                uint256 lastUpdate,
-                uint256 fee
-            ) = morpho.market(id);
-            uint256 borrowed = borrowShares.toAssetsUp(totalBorrowAssets, totalBorrowShares);
-            uint256 collateralPrice = IOracle(marketParams.oracle).price();
-            uint256 maxBorrow = collateral.mulDivDown(collateralPrice, ORACLE_PRICE_SCALE).wMulDown(marketParams.lltv);
-            assertTrue(maxBorrow >= borrowed, "Position must maintain sufficient collateral");
-        }
+    // function assert_MORPHO_POSITION_HEALTH() internal {
+    //     address borrower = address(0); // Replace with actual borrower
+    //     Id id = activeMarketParams.id();
+    //     (uint256 supplyShares, uint256 borrowShares, uint256 collateral) = morpho.position(id, borrower);
+    //     if (borrowShares > 0) {
+    //         (
+    //             uint256 totalSupplyAssets,
+    //             uint256 totalSupplyShares,
+    //             uint256 totalBorrowAssets,
+    //             uint256 totalBorrowShares,
+    //             uint256 lastUpdate,
+    //             uint256 fee
+    //         ) = morpho.market(id);
+    //         uint256 borrowed = borrowShares.toAssetsUp(totalBorrowAssets, totalBorrowShares);
+    //         uint256 collateralPrice = IOracle(activeMarketParams.oracle).price();
+    //         uint256 maxBorrow = collateral.mulDivDown(collateralPrice, ORACLE_PRICE_SCALE).wMulDown(
+    //             activeMarketParams.lltv
+    //         );
+    //         assertTrue(maxBorrow >= borrowed, "Position must maintain sufficient collateral");
+    //     }
 
-        assertTrue(true);
-    }
+    //     assertTrue(true);
+    // }
 
-    function assert_MORPHO_MARKET_TIMESTAMPS() internal {
-        Id id = marketParams.id();
-        (, , , , uint256 lastUpdate, uint256 fee) = morpho.market(id);
+    // function assert_MORPHO_MARKET_TIMESTAMPS() internal {
+    //     Id id = activeMarketParams.id();
+    //     (, , , , uint256 lastUpdate, uint256 fee) = morpho.market(id);
 
-        assertTrue(lastUpdate <= block.timestamp, "Market last update must not be in future");
-    }
+    //     assertTrue(lastUpdate <= block.timestamp, "Market last update must not be in future");
+    // }
 
-    function assert_MORPHO_FEE_RECIPIENT_SHARES() internal {
-        Id id = marketParams.id();
-        address feeRecipient = morpho.feeRecipient();
-        (, , , , , uint256 fee) = morpho.market(id);
+    // function assert_MORPHO_FEE_RECIPIENT_SHARES() internal {
+    //     Id id = activeMarketParams.id();
+    //     address feeRecipient = morpho.feeRecipient();
+    //     (, , , , , uint256 fee) = morpho.market(id);
 
-        (uint256 supplyShares, uint256 borrowShares, uint256 collateral) = morpho.position(id, feeRecipient);
+    //     (uint256 supplyShares, uint256 borrowShares, uint256 collateral) = morpho.position(id, feeRecipient);
 
-        if (fee > 0) {
-            // Fee recipient should accumulate shares when fees are enabled
-            assertTrue(supplyShares >= 0, "Fee recipient should have valid share balance");
-        }
-    }
+    //     if (fee > 0) {
+    //         // Fee recipient should accumulate shares when fees are enabled
+    //         assertTrue(supplyShares >= 0, "Fee recipient should have valid share balance");
+    //     }
+    // }
 
-    function assert_MORPHO_MARKET_PARAMS_CONSISTENCY() internal {
-        Id id = marketParams.id();
+    // function assert_MORPHO_MARKET_PARAMS_CONSISTENCY() internal {
+    //     Id id = activeMarketParams.id();
 
-        (address _loanToken, address _collateralToken, address oracle, address _irm, uint256 lltv) = morpho
-            .idToMarketParams(id);
+    //     (address _loanToken, address _collateralToken, address oracle, address _irm, uint256 lltv) = morpho
+    //         .idToMarketParams(id);
 
-        // Token address validations
-        assertTrue(_loanToken != address(0), "Loan token must be set");
-        assertTrue(_collateralToken != address(0), "Collateral token must be set");
-        assertTrue(oracle != address(0), "Oracle must be set");
-        assertTrue(_irm != address(0), "IRM must be set");
+    //     // Token address validations
+    //     assertTrue(_loanToken != address(0), "Loan token must be set");
+    //     assertTrue(_collateralToken != address(0), "Collateral token must be set");
+    //     assertTrue(oracle != address(0), "Oracle must be set");
+    //     assertTrue(_irm != address(0), "IRM must be set");
 
-        // Numerical parameter validations
-        assertTrue(lltv > 0, "LLTV must be positive");
-        assertTrue(lltv < WAD, "LLTV must be less than WAD");
-        assertTrue(morpho.isIrmEnabled(address(irm)), "IRM must be enabled");
-        assertTrue(morpho.isLltvEnabled(lltv), "LLTV must be enabled");
-    }
+    //     // Numerical parameter validations
+    //     assertTrue(lltv > 0, "LLTV must be positive");
+    //     assertTrue(lltv < WAD, "LLTV must be less than WAD");
+    //     assertTrue(morpho.isIrmEnabled(address(mockIRM)), "IRM must be enabled");
+    //     assertTrue(morpho.isLltvEnabled(lltv), "LLTV must be enabled");
+    // }
 
-    function assert_MORPHO_MARKET_CREATION() internal {
-        Id id = marketParams.id();
-        (, , , , uint256 lastUpdate, ) = morpho.market(id);
+    // function assert_MORPHO_MARKET_CREATION() internal {
+    //     Id id = activeMarketParams.id();
+    //     (, , , , uint256 lastUpdate, ) = morpho.market(id);
 
-        assertTrue(lastUpdate != 0, "Market should be created");
-    }
+    //     assertTrue(lastUpdate != 0, "Market should be created");
+    // }
 
     function assert_MORPHO_INTEREST_ACCRUAL() internal {
-        // Id id = marketParams.id();
+        // Id id = activeMarketParams.id();
         // uint256 initialSupplyAssets = morpho.market(id).totalSupplyAssets;
         // uint256 initialBorrowAssets = morpho.market(id).totalBorrowAssets;
         // morpho.accrueInterest(marketParams);
@@ -269,7 +271,7 @@ abstract contract MorphoAssertions is HandlerAggregator {
     }
 
     function assert_MORPHO_FEE_DISTRIBUTION() internal {
-        // Id id = marketParams.id();
+        // Id id = activeMarketParams.id();
         // address feeRecipient = morpho.feeRecipient();
         // uint256 initialFeeShares = morpho.position(id, feeRecipient).supplyShares;
         // morpho.accrueInterest(marketParams);

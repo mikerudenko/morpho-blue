@@ -7,7 +7,7 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {Actor} from "./utils/Actor.sol";
 import {BaseTest} from "./base/BaseTest.t.sol";
 import {Morpho} from "../../src/Morpho.sol";
-import {MarketParams} from "../../src/interfaces/IMorpho.sol";
+import {MarketParams, Id} from "../../src/interfaces/IMorpho.sol";
 import {MockPriceOracle} from "./mocks/MockPriceOracle.sol";
 import {TestERC20} from "./mocks/TestERC20.sol";
 import {MockIIrm} from "./mocks/MockIIrm.sol";
@@ -16,6 +16,7 @@ import {UtilsLib} from "../../src/libraries/UtilsLib.sol";
 import {SharesMathLib} from "../../src/libraries/SharesMathLib.sol";
 import {SafeTransferLib} from "../../src/libraries/SafeTransferLib.sol";
 import {MarketParamsLib} from "../../src/libraries/MarketParamsLib.sol";
+
 import "forge-std/console.sol";
 
 // import "src/Counter.sol";
@@ -32,38 +33,55 @@ abstract contract Setup is BaseTest {
 
     function _setUp() internal {
         _deployMorpho();
-        _createMarket();
+        _createMarkets();
     }
 
     function _deployMorpho() internal {
-        morpho = new Morpho(address(this));
-        // vaults.push(address(morpho));
+        morpho = new Morpho(address(msg.sender));
+        current_owner = address(msg.sender);
     }
 
-    function _createMarket() internal {
+    function _createMarkets() internal {
         mockOracle = new MockPriceOracle();
-        loanToken = new TestERC20("LOAN", "Loan Token");
-        collateralToken = new TestERC20("COLL", "Collateral Token");
 
-        irm = new MockIIrm(0.05 * 1e18);
+        mockIRM = new MockIIrm(0.05 * 1e18);
+        uint256 ltv = 0.7 * 1e18; // Example: 50% + 5% * (i + j)
 
-        // Define LLTV value
-        uint256 ltv = 0.75 * 1e18; // 75% LLTV
+        address[] memory tokenList = new address[](4);
+        tokenList[0] = address(new TestERC20("ETH", "Ethereum"));
+        tokenList[1] = address(new TestERC20("USDC", "USD Coin"));
+        tokenList[2] = address(new TestERC20("BTC", "Bitcoin"));
+        tokenList[3] = address(new TestERC20("DESO", "Decentralized Social"));
 
-        // Enable IRM and LLTV first since we are the owner
-        morpho.enableIrm(address(irm));
+        vm.prank(current_owner);
+        morpho.enableIrm(address(mockIRM));
+        vm.prank(current_owner);
         morpho.enableLltv(ltv);
-        vm.warp(21639562);
 
-        marketParams = MarketParams({
-            irm: address(irm),
-            lltv: ltv, // Use same LTV that was enabled
-            oracle: address(mockOracle),
-            loanToken: address(loanToken),
-            collateralToken: address(collateralToken)
-        });
+        for (uint256 i = 0; i < tokenList.length; i++) {
+            for (uint256 j = 0; j < tokenList.length; j++) {
+                if (i != j) {
+                    // Randomize LLTV value using the loop index
 
-        morpho.createMarket(marketParams);
+                    MarketParams memory marketParams = MarketParams({
+                        irm: address(mockIRM),
+                        lltv: ltv,
+                        oracle: address(mockOracle),
+                        loanToken: tokenList[i],
+                        collateralToken: tokenList[j]
+                    });
+
+                    if (i == tokenList.length - 1) {
+                        activeMarketParams = marketParams;
+                    }
+
+                    Id id = marketParams.id();
+                    marketIds.push(id);
+                    tokens.push(tokenList[i]);
+                    morpho.createMarket(marketParams);
+                }
+            }
+        }
     }
 
     function _getRandomActor() internal view returns (address) {
@@ -79,14 +97,11 @@ abstract contract Setup is BaseTest {
         addresses[0] = USER1;
         addresses[1] = USER2;
         addresses[2] = USER3;
-
-        address[] memory tokens = new address[](2);
-        tokens[0] = address(loanToken);
-        tokens[1] = address(collateralToken);
+        address[] memory vaults = new address[](1);
 
         for (uint256 i; i < NUMBER_OF_ACTORS; i++) {
-            // Deply actor proxies and approve system contracts
-            address _actor = _setUpActor(addresses[i], tokens, vaults);
+            // Deploy actor proxies and approve system contracts
+            address _actor = _setUpActor(addresses[i], tokens, address(morpho));
 
             // Mint initial balances to actors
             for (uint256 j = 0; j < tokens.length; j++) {
@@ -99,12 +114,13 @@ abstract contract Setup is BaseTest {
 
     function _setUpActor(
         address userAddress,
-        address[] memory tokens,
-        address[] memory callers
+        address[] memory _tokens,
+        address caller
     ) internal returns (address actorAddress) {
-        bool success;
-        Actor _actor = new Actor(tokens, callers);
+        // bool success;
+        Actor _actor = new Actor(_tokens, caller);
         actors[userAddress] = _actor;
+        vm.deal(address(_actor), INITIAL_ETH_BALANCE);
         // (success, ) = address(_actor).call{value: INITIAL_ETH_BALANCE}("");
         // assert(success);
         actorAddress = address(_actor);
