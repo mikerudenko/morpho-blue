@@ -92,9 +92,11 @@ contract MorphoHandler is BaseHandler {
         vm.warp(warpTime);
     }
 
-    function withdraw(uint256 assets, uint256 shares, address onBehalf, address receiver) external withActor {
+    function withdraw(uint256 assets, uint256 shares, address receiver, uint randomIndex) external withActor {
         bool success;
         bytes memory returnData;
+
+        address onBehalf = this.getOnBehalf(randomIndex);
 
         (success, returnData) = actor.proxy(
             address(morpho),
@@ -115,17 +117,20 @@ contract MorphoHandler is BaseHandler {
 
     // TODO withdraw on behalf case
 
-    function withdrawWithShares(uint256 shares, address onBehalf, address receiver) external withActor {
-        this.withdraw(0, shares, msg.sender, receiver);
+    function getOnBehalf(uint randomIndex) external view returns (address) {
+        uint randomActorIndex = actorAddresses.length % randomIndex;
+        return actorAddresses[randomActorIndex];
     }
 
-    function withdrawWithMsgSenderShares(uint256 assets, uint256 shares, address receiver) external withActor {
-        this.withdraw(assets, shares, address(actor), receiver);
+    function withdrawWithShares(uint256 shares, address receiver, uint randomIndex) external withActor {
+        this.withdraw(0, shares, receiver, randomIndex);
     }
 
-    function borrow(uint256 assets, address onBehalf, address receiver) external withActor {
+    function borrow(uint256 assets, address receiver, uint randomIndex) external withActor {
         bool success;
         bytes memory returnData;
+
+        address onBehalf = this.getOnBehalf(randomIndex);
 
         (success, returnData) = actor.proxy(
             address(morpho),
@@ -137,13 +142,15 @@ contract MorphoHandler is BaseHandler {
         }
     }
 
-    function repay(uint256 assets, address onBehalf) external withActor {
+    function repay(uint256 assets, uint shares, uint randomIndex) external withActor {
         bool success;
         bytes memory returnData;
 
+        address onBehalf = this.getOnBehalf(randomIndex);
+
         (success, returnData) = actor.proxy(
             address(morpho),
-            abi.encodeWithSelector(IMorphoBase.repay.selector, activeMarketParams, assets, 0, onBehalf, "")
+            abi.encodeWithSelector(IMorphoBase.repay.selector, activeMarketParams, assets, shares, onBehalf, "")
         );
 
         if (success) {
@@ -151,9 +158,31 @@ contract MorphoHandler is BaseHandler {
         }
     }
 
-    function supplyCollateral(uint256 assets, address onBehalf) external withActor {
+    function repayWithShares(uint256 shares, uint randomIndex) external withActor {
+        uint clampedShares = clampBetween(shares, 0, INITIAL_BALANCE);
+
+        this.repay(0, clampedShares, randomIndex);
+    }
+
+    function repayMsgSender(uint256 assets, uint shares) external withActor {
         bool success;
         bytes memory returnData;
+
+        (success, returnData) = actor.proxy(
+            address(morpho),
+            abi.encodeWithSelector(IMorphoBase.repay.selector, activeMarketParams, assets, shares, address(actor), "")
+        );
+
+        if (success) {
+            assert(true);
+        }
+    }
+
+    function supplyCollateral(uint256 assets, uint randomIndex) external withActor {
+        bool success;
+        bytes memory returnData;
+
+        address onBehalf = this.getOnBehalf(randomIndex);
 
         (success, returnData) = actor.proxy(
             address(morpho),
@@ -165,9 +194,11 @@ contract MorphoHandler is BaseHandler {
         }
     }
 
-    function withdrawCollateral(uint256 assets, address onBehalf, address receiver) external withActor {
+    function withdrawCollateral(uint256 assets, uint randomIndex, address receiver) external withActor {
         bool success;
         bytes memory returnData;
+
+        address onBehalf = this.getOnBehalf(randomIndex);
 
         (success, returnData) = actor.proxy(
             address(morpho),
@@ -251,13 +282,16 @@ contract MorphoHandler is BaseHandler {
         morpho.setFeeRecipient(newFeeRecipient);
     }
 
-    function setAuthorization(address authorized, bool newIsAuthorized) external withActor {
+    function setAuthorization(uint randomIndex, bool newIsAuthorized) external withActor {
+        uint randomActorIndex = actorAddresses.length % randomIndex;
+        address randomActor = actorAddresses[randomActorIndex];
+
         bool success;
         bytes memory returnData;
 
         (success, returnData) = actor.proxy(
             address(morpho),
-            abi.encodeWithSelector(IMorphoBase.setAuthorization.selector, authorized, newIsAuthorized)
+            abi.encodeWithSelector(IMorphoBase.setAuthorization.selector, randomActor, newIsAuthorized)
         );
 
         if (success) {

@@ -14,7 +14,8 @@ contract MockPriceOracle is IOracle {
         return _price * 10 ** decimals;
     }
 
-    function setPrice(uint256 newPrice) external {
-        _price = 122;
+    function setPrice() external {
+        // _price = 122;
+        _price = _price * 10 ** decimals;
     }
 }
